@@ -5,7 +5,7 @@ use crate::{
     settings::{GameHelpDialog, Settings},
     GameAssets, GameVersion,
 };
-use flate2::read::ZlibDecoder;
+use flate2::bufread::ZlibDecoder;
 use minio::ReadPrimitives;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::{
@@ -311,7 +311,7 @@ where
         log!(
             logger,
             "   - Colour outside the room region (RGBA): #{:0>8X}",
-            0x1234
+            clear_colour
         );
 
         log!(
