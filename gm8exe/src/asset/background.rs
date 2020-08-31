@@ -1,5 +1,5 @@
 use crate::{
-    asset::{assert_ver, Asset, AssetDataError, ReadPascalString, WritePascalString},
+    asset::{assert_ver, Asset, AssetDataError, PascalString, ReadPascalString, WritePascalString},
     GameVersion,
 };
 
@@ -11,7 +11,7 @@ pub const VERSION2: u32 = 800;
 
 pub struct Background {
     /// The asset name present in GML and the editor.
-    pub name: String,
+    pub name: PascalString,
 
     /// The width of the background image in pixels.
     pub width: u32,
@@ -77,7 +77,7 @@ impl Asset for Background {
         result += writer.write_u32_le(self.height as u32)?;
         if let Some(pixeldata) = &self.data {
             result += writer.write_u32_le(pixeldata.len() as u32)?;
-            result += writer.write(&pixeldata)?;
+            result += writer.write_all(&pixeldata).map(|()| pixeldata.len())?;
         }
         Ok(result)
     }

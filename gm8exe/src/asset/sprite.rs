@@ -1,5 +1,5 @@
 use crate::{
-    asset::{assert_ver, Asset, AssetDataError, ReadPascalString, WritePascalString},
+    asset::{assert_ver, Asset, AssetDataError, PascalString, ReadPascalString, WritePascalString},
     GameVersion,
 };
 
@@ -15,7 +15,7 @@ pub const VERSION_FRAME: u32 = 800;
 
 pub struct Sprite {
     /// The asset name present in GML and the editor.
-    pub name: String,
+    pub name: PascalString,
 
     /// The origin within the sprite.
     pub origin_x: i32,
@@ -187,7 +187,7 @@ impl Asset for Sprite {
                 result += writer.write_u32_le(frame.data.len() as u32)?;
 
                 let pixeldata = frame.data.clone();
-                result += writer.write(&pixeldata)?;
+                result += writer.write_all(&pixeldata).map(|()| pixeldata.len())?;
             }
             result += writer.write_u32_le(self.per_frame_colliders as u32)?;
             for collider in self.colliders.iter() {

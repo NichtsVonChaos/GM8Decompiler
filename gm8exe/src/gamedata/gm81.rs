@@ -1,5 +1,6 @@
 use minio::ReadPrimitives;
 use std::{
+    convert::TryInto,
     io::{self, Read, Seek, SeekFrom},
     iter::once,
 };
@@ -201,8 +202,10 @@ where
 
     // Decrypt stream from encryption_start
     let game_data = &mut data.get_mut()[encryption_start as usize..];
-    for chunk in game_data.chunks_exact_mut(4).map(|s| unsafe { &mut *(s as *mut _ as *mut u32) }) {
-        *chunk ^= generator.next().unwrap();
+    let array_hack = |slice| <&mut [u8] as TryInto<&mut [u8; 4]>>::try_into(slice).unwrap();
+    for chunk in game_data.chunks_exact_mut(4).map(array_hack) {
+        let dword = u32::from_le_bytes(*chunk);
+        *chunk = (dword ^ generator.next().unwrap()).to_le_bytes();
     }
 
     Ok(())
@@ -217,6 +220,7 @@ struct NormalMaskGenerator {
 impl Iterator for NormalMaskGenerator {
     type Item = u32;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.seed1 = (0xFFFF & self.seed1) * 0x9069 + (self.seed1 >> 16);
         self.seed2 = (0xFFFF & self.seed2) * 0x4650 + (self.seed2 >> 16);
@@ -232,6 +236,7 @@ struct SudalvMaskGenerator<I: Iterator<Item = u16>> {
 impl<I: Iterator<Item = u16>> Iterator for SudalvMaskGenerator<I> {
     type Item = u32;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.seed1 = (0xFFFF & self.seed1) * u32::from(self.iter.next().unwrap()) + (self.seed1 >> 16);
         self.seed2 = (0xFFFF & self.seed2) * u32::from(self.iter.next().unwrap()) + (self.seed2 >> 16);

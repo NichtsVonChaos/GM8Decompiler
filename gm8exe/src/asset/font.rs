@@ -1,5 +1,5 @@
 use crate::{
-    asset::{assert_ver, Asset, AssetDataError, ReadPascalString, WritePascalString},
+    asset::{assert_ver, Asset, AssetDataError, PascalString, ReadPascalString, WritePascalString},
     GameVersion,
 };
 
@@ -10,10 +10,10 @@ pub const VERSION: u32 = 800;
 
 pub struct Font {
     /// The asset name present in GML and the editor.
-    pub name: String,
+    pub name: PascalString,
 
     /// The name of the source font found on the system.
-    pub sys_name: String,
+    pub sys_name: PascalString,
 
     /// The size of the font in pixels.
     pub size: u32,
@@ -136,7 +136,7 @@ impl Asset for Font {
         result += writer.write_u32_le(self.map_width)?;
         result += writer.write_u32_le(self.map_height)?;
         result += writer.write_u32_le(self.pixel_map.len() as u32)?;
-        result += writer.write(&self.pixel_map)?;
+        result += writer.write_all(&self.pixel_map).map(|()| self.pixel_map.len())?;
 
         Ok(result)
     }
